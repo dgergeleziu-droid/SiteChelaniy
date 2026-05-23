@@ -10,11 +10,16 @@ const corsHeaders = {
 };
 
 function json(statusCode, body) {
-  return {
-    statusCode,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  };
+  return new Response(
+    JSON.stringify(body),
+    {
+      status: statusCode,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "application/json",
+      },
+    }
+  );
 }
 
 function checkAuth(event) {
@@ -40,7 +45,10 @@ async function saveState(store, state) {
 
 export default async (event) => {
   if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers: corsHeaders, body: "" };
+    return new Response("", {
+      status: 204,
+      headers: corsHeaders,
+    });
   }
 
   const authError = checkAuth(event);
