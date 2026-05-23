@@ -6,26 +6,23 @@ const STORE_NAME = "wish-service";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "Content-Type, X-Wish-Key",
-  "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, PUT, OPTIONS",
 };
 
-function json(statusCode, body) {
-  return new Response(
-    JSON.stringify(body),
-    {
-      status: statusCode,
-      headers: {
-        ...corsHeaders,
-        "Content-Type": "application/json",
-      },
-    }
-  );
+function json(status, body) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "application/json",
+    },
+  });
 }
 
-function checkAuth(event) {
+function checkAuth(request) {
   const secret = process.env.WISH_SYNC_KEY;
   if (!secret) return null;
-  const key = event.headers["x-wish-key"] || event.headers["X-Wish-Key"];
+  const key = request.headers.get("x-wish-key");
   if (key !== secret) return json(401, { error: "Неверный ключ доступа" });
   return null;
 }
@@ -43,37 +40,43 @@ async function saveState(store, state) {
   return state;
 }
 
-export default async (event) => {
-  if (event.httpMethod === "OPTIONS") {
+async function parseBody(request) {
+  const text = await request.text();
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+export default async (request) => {
+  if (request.method === "OPTIONS") {
     return new Response("", {
       status: 204,
       headers: corsHeaders,
     });
   }
 
-  const authError = checkAuth(event);
+  const authError = checkAuth(request);
   if (authError) return authError;
 
   const store = getStore({ name: STORE_NAME, consistency: "strong" });
 
   try {
-    if (event.httpMethod === "GET") {
+    if (request.method === "GET") {
       const state = await loadState(store);
       return json(200, state);
     }
 
-    let body = {};
-    if (event.body) {
-      try {
-        body = JSON.parse(event.body);
-      } catch {
-        return json(400, { error: "Некорректный JSON" });
-      }
+    const body = await parseBody(request);
+    if (body === null) {
+      return json(400, { error: "Некорректный JSON" });
     }
 
     const state = await loadState(store);
 
-    if (event.httpMethod === "POST") {
+    if (request.method === "POST") {
       const wish = body.wish;
       if (!wish || !wish.id || !wish.title) {
         return json(400, { error: "Нужны поля wish.id и wish.title" });
@@ -86,7 +89,7 @@ export default async (event) => {
       return json(201, saved);
     }
 
-    if (event.httpMethod === "PATCH") {
+    if (request.method === "PATCH") {
       const { id, patch } = body;
       if (!id || !patch) return json(400, { error: "Нужны id и patch" });
       const idx = state.wishes.findIndex((w) => w.id === id);
@@ -96,7 +99,7 @@ export default async (event) => {
       return json(200, saved);
     }
 
-    if (event.httpMethod === "DELETE") {
+    if (request.method === "DELETE") {
       const { id } = body;
       if (!id) return json(400, { error: "Нужен id" });
       const before = state.wishes.length;
@@ -106,7 +109,7 @@ export default async (event) => {
       return json(200, saved);
     }
 
-    if (event.httpMethod === "PUT") {
+    if (request.method === "PUT") {
       if (!Array.isArray(body.wishes)) {
         return json(400, { error: "Нужен массив wishes" });
       }
