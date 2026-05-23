@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Служба исполнения желаний ✨</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="stars" aria-hidden="true"></div>
+
+  <header class="header">
+    <div class="logo">
+      <span class="logo-icon">✨</span>
+      <div>
+        <h1>Служба исполнения желаний</h1>
+        <p class="tagline">Официально. Почти. С любовью.</p>
+      </div>
+    </div>
+    <div class="sync-status" id="sync-status" title="Синхронизация между устройствами">
+      <span class="sync-dot" id="sync-dot"></span>
+      <span id="sync-label">Подключение…</span>
+    </div>
+    <div class="role-switch" role="tablist">
+      <button type="button" class="role-btn active" data-role="customer" aria-selected="true">
+        <span>👑</span> Заказчик
+      </button>
+      <button type="button" class="role-btn" data-role="executor" aria-selected="false">
+        <span>🦸</span> Исполнитель
+      </button>
+    </div>
+  </header>
+
+  <main class="main">
+    <aside class="stats-panel">
+      <div class="stat-card">
+        <span class="stat-label">Всего желаний</span>
+        <span class="stat-value" id="stat-total">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Выполнено</span>
+        <span class="stat-value" id="stat-done">0</span>
+      </div>
+      <div class="stat-card highlight">
+        <span class="stat-label">Заработано баллов</span>
+        <span class="stat-value" id="stat-points">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Бонусов выдано</span>
+        <span class="stat-value" id="stat-bonuses">0</span>
+      </div>
+    </aside>
+
+    <section class="content">
+      <!-- Customer view -->
+      <div class="panel panel-customer active" id="panel-customer">
+        <div class="panel-header">
+          <h2>Новый заказ</h2>
+          <p>Опиши желание — исполнитель получит уведомление (ну, увидит список)</p>
+        </div>
+
+        <form class="wish-form" id="wish-form">
+          <div class="form-row">
+            <label for="wish-title">Желание *</label>
+            <input type="text" id="wish-title" placeholder="Например: принеси кофе" required maxlength="120">
+          </div>
+
+          <div class="form-row">
+            <label for="wish-desc">Подробности</label>
+            <textarea id="wish-desc" rows="2" placeholder="С сахаром, без сахара, с объятиями..." maxlength="300"></textarea>
+          </div>
+
+          <div class="form-row form-row-inline">
+            <div class="form-group">
+              <label for="wish-difficulty">Сложность</label>
+              <select id="wish-difficulty">
+                <option value="easy">🟢 Лёгкое (5 баллов)</option>
+                <option value="medium" selected>🟡 Среднее (15 баллов)</option>
+                <option value="hard">🔴 Сложное (30 баллов)</option>
+                <option value="legendary">💜 Легендарное (50 баллов)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="wish-type">Тип</label>
+              <select id="wish-type">
+                <option value="real">Реальное</option>
+                <option value="joke">Шуточное</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label>Бонус за выполнение</label>
+            <div class="bonus-options" id="bonus-options">
+              <label class="bonus-chip">
+                <input type="radio" name="bonus" value="hug" checked>
+                <span>🤗 Объятия</span>
+              </label>
+              <label class="bonus-chip">
+                <input type="radio" name="bonus" value="kiss">
+                <span>💋 Поцелуй</span>
+              </label>
+              <label class="bonus-chip">
+                <input type="radio" name="bonus" value="compliment">
+                <span>💬 Комплимент</span>
+              </label>
+              <label class="bonus-chip">
+                <input type="radio" name="bonus" value="massage">
+                <span>💆 Массаж</span>
+              </label>
+              <label class="bonus-chip">
+                <input type="radio" name="bonus" value="gift">
+                <span>🎁 Подарок</span>
+              </label>
+              <label class="bonus-chip">
+                <input type="radio" name="bonus" value="custom">
+                <span>✏️ Свой</span>
+              </label>
+            </div>
+            <input type="text" id="wish-bonus-custom" class="bonus-custom hidden" placeholder="Опиши свой бонус..." maxlength="80">
+          </div>
+
+          <button type="submit" class="btn btn-primary">Отправить заказ ✨</button>
+        </form>
+
+        <div class="quick-wishes">
+          <span class="quick-label">Быстрые шаблоны:</span>
+          <button type="button" class="quick-btn" data-template="coffee">☕ Кофе</button>
+          <button type="button" class="quick-btn" data-template="movie">🎬 Фильм</button>
+          <button type="button" class="quick-btn" data-template="massage">💆 Массаж</button>
+          <button type="button" class="quick-btn" data-template="hug">🤗 Обнять</button>
+          <button type="button" class="quick-btn" data-template="joke">🎭 Шутка дня</button>
+        </div>
+      </div>
+
+      <!-- Executor view -->
+      <div class="panel panel-executor" id="panel-executor">
+        <div class="panel-header">
+          <h2>Очередь заказов</h2>
+          <p>Примай заказы, выполняй — получай бонусы и баллы</p>
+        </div>
+        <div class="executor-filters">
+          <button type="button" class="filter-btn active" data-filter="pending">Новые</button>
+          <button type="button" class="filter-btn" data-filter="active">В работе</button>
+          <button type="button" class="filter-btn" data-filter="done">Выполненные</button>
+          <button type="button" class="filter-btn" data-filter="all">Все</button>
+        </div>
+      </div>
+
+      <div class="wishes-section">
+        <h3 class="wishes-title" id="wishes-title">Мои заказы</h3>
+        <ul class="wishes-list" id="wishes-list"></ul>
+        <p class="empty-state hidden" id="empty-state">
+          <span class="empty-icon">🌙</span>
+          Пока пусто. Создай первое желание!
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Служба работает 24/7 · Гарантия любви · Возврат невозможен</p>
+  </footer>
+
+  <div class="toast hidden" id="toast" role="status"></div>
+
+  <dialog class="modal" id="complete-modal">
+    <form method="dialog" class="modal-content">
+      <h3>Заказ выполнен! 🎉</h3>
+      <p id="complete-modal-text"></p>
+      <p class="modal-bonus" id="complete-modal-bonus"></p>
+      <button type="submit" class="btn btn-primary">Ура!</button>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="auth-modal">
+    <form method="dialog" class="modal-content" id="auth-form">
+      <h3>🔐 Ключ синхронизации</h3>
+      <p class="auth-hint">Введите пароль, который вы задали в Netlify (переменная WISH_SYNC_KEY). Один раз — сохранится в браузере.</p>
+      <input type="password" id="auth-key-input" class="auth-input" placeholder="Пароль" required autocomplete="off">
+      <button type="submit" class="btn btn-primary">Войти</button>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
